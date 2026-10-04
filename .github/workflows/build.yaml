@@ -9,11 +9,22 @@ jobs:
       - name: Generate projects
         working-directory: src
         shell: cmd
+        continue-on-error: true
         run: creategameprojects.bat
+      - name: List projects
+        shell: cmd
+        run: dir /s /b src\*.vcxproj
       - name: Build
         working-directory: src
         shell: cmd
-        run: msbuild games.sln /p:Configuration=Release /p:Platform=Win32 /p:PlatformToolset=v143 /m
+        run: |
+          set OPTS=/p:Configuration=Release /p:Platform=Win32 /p:PlatformToolset=v143 /m
+          msbuild mathlib\mathlib.vcxproj %OPTS% || exit /b 1
+          msbuild tier1\tier1.vcxproj %OPTS% || exit /b 1
+          msbuild raytrace\raytrace.vcxproj %OPTS% || exit /b 1
+          msbuild vgui2\vgui_controls\vgui_controls.vcxproj %OPTS% || exit /b 1
+          msbuild game\client\client_hl2.vcxproj %OPTS% || exit /b 1
+          msbuild game\server\server_hl2.vcxproj %OPTS% || exit /b 1
       - name: List output
         if: always()
         shell: cmd
@@ -23,6 +34,7 @@ jobs:
         with:
           name: w_hl2-dlls
           path: |
-            src/game/client/Release_mod_hl2/client.dll
-            src/game/server/Release_mod_hl2/server.dll
+            game/mod_hl2/bin/*.dll
+            src/game/client/Release_mod_hl2/*.dll
+            src/game/server/Release_mod_hl2/*.dll
           if-no-files-found: warn
