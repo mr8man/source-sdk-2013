@@ -1,0 +1,28 @@
+name: build
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x86
+      - name: Generate projects
+        working-directory: sp/src
+        shell: cmd
+        run: creategameprojects.bat
+      - name: Build client and server
+        working-directory: sp/src
+        shell: cmd
+        run: |
+          msbuild game\client\client_hl2.vcxproj /p:Configuration=Release /p:Platform=Win32 /m
+          msbuild game\server\server_hl2.vcxproj /p:Configuration=Release /p:Platform=Win32 /m
+      - name: List output
+        shell: cmd
+        run: dir /s /b sp\game\*.dll
+      - uses: actions/upload-artifact@v4
+        with:
+          name: w_hl2-dlls
+          path: sp/game/mod_hl2/bin/*.dll
+          if-no-files-found: warn
