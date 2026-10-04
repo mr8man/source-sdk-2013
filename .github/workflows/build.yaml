@@ -1,0 +1,28 @@
+name: build
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: microsoft/setup-msbuild@v2
+      - name: Generate projects
+        working-directory: src
+        shell: cmd
+        run: creategameprojects.bat
+      - name: Build
+        working-directory: src
+        shell: cmd
+        run: msbuild games.sln /p:Configuration=Release /p:Platform=Win32 /p:PlatformToolset=v143 /m
+      - name: List output
+        if: always()
+        shell: cmd
+        run: dir /s /b *.dll
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: w_hl2-dlls
+          path: |
+            src/game/client/Release_mod_hl2/client.dll
+            src/game/server/Release_mod_hl2/server.dll
+          if-no-files-found: warn
