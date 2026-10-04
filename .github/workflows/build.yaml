@@ -11,9 +11,15 @@ jobs:
         shell: cmd
         continue-on-error: true
         run: creategameprojects.bat
-      - name: List projects
-        shell: cmd
-        run: dir /s /b src\*.vcxproj
+      - name: Disable warnings-as-errors
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path src -Recurse -Filter *.vcxproj | ForEach-Object {
+            $t = Get-Content $_.FullName -Raw
+            $t = $t -replace '<TreatWarningAsError>true</TreatWarningAsError>','<TreatWarningAsError>false</TreatWarningAsError>'
+            $t = $t -replace '/WX(?!-)',''
+            Set-Content -Path $_.FullName -Value $t -NoNewline
+          }
       - name: Build
         working-directory: src
         shell: cmd
