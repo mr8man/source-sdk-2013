@@ -5,24 +5,25 @@ jobs:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
-      - uses: ilammy/msvc-dev-cmd@v1
+      - uses: actions/setup-python@v5
         with:
-          arch: x86
+          python-version: '3.13'
+      - uses: ilammy/msvc-dev-cmd@v1
       - name: Generate projects
-        working-directory: sp/src
+        working-directory: src
         shell: cmd
-        run: creategameprojects.bat
-      - name: Build client and server
-        working-directory: sp/src
+        run: createallprojects.bat
+      - name: Build
+        working-directory: src
         shell: cmd
-        run: |
-          msbuild game\client\client_hl2.vcxproj /p:Configuration=Release /p:Platform=Win32 /m
-          msbuild game\server\server_hl2.vcxproj /p:Configuration=Release /p:Platform=Win32 /m
+        run: msbuild everything.sln /p:Configuration=Release /m
       - name: List output
+        if: always()
         shell: cmd
-        run: dir /s /b sp\game\*.dll
+        run: dir /s /b game\*.dll
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: w_hl2-dlls
-          path: sp/game/mod_hl2/bin/*.dll
+          path: game/mod_hl2/**/*.dll
           if-no-files-found: warn
